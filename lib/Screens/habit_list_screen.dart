@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:matthew_cpd_assignment/Models/habit.dart';
+import 'package:matthew_cpd_assignment/Screens/habit_detail_screen.dart';
 
 class HabitListScreen extends StatefulWidget {
   const HabitListScreen({super.key});
@@ -13,16 +14,44 @@ class _HabitListScreenState extends State<HabitListScreen> {
   List<Habit> habits = [];
 
   Future<void> _addHabit() async {
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+    TextEditingController habitController = TextEditingController();
 
-    setState(() {
-      habits.add(Habit(
-        name: "New Habit",
-        latitude: position.latitude,
-        longitude: position.longitude,
-      ));
-    });
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Enter Habit Name"),
+          content: TextField(
+            controller: habitController,
+            decoration: const InputDecoration(hintText: "Habit Name"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (habitController.text.isNotEmpty) {
+                  Position position = await Geolocator.getCurrentPosition(
+                      desiredAccuracy: LocationAccuracy.high);
+
+                  setState(() {
+                    habits.add(Habit(
+                      name: habitController.text,
+                      latitude: position.latitude,
+                      longitude: position.longitude,
+                    ));
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -39,6 +68,14 @@ class _HabitListScreenState extends State<HabitListScreen> {
                   title: Text(habits[index].name),
                   subtitle: Text(
                       "Location: ${habits[index].latitude}, ${habits[index].longitude}"),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HabitDetailScreen(habit: habits[index]),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -48,7 +85,7 @@ class _HabitListScreenState extends State<HabitListScreen> {
             child: ElevatedButton(
               onPressed: _addHabit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, // Button color
+                backgroundColor: Colors.blue,
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                 textStyle: const TextStyle(fontSize: 18),
               ),
