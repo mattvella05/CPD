@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:matthew_cpd_assignment/Models/habit.dart';
+import 'package:matthew_cpd_assignment/Services/local_notification_service.dart';
 
 class HabitProvider extends ChangeNotifier {
   final List<Habit> _habits = [];
@@ -9,7 +10,8 @@ class HabitProvider extends ChangeNotifier {
 
   Future<void> addHabit(String name) async {
     Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+      desiredAccuracy: LocationAccuracy.high,
+    );
 
     _habits.add(Habit(
       name: name,
@@ -18,5 +20,10 @@ class HabitProvider extends ChangeNotifier {
     ));
 
     notifyListeners();
+
+    await LocalNotificationService.showNotification(
+      'Habit Added',
+      '$name added at (${position.latitude}, ${position.longitude})',
+    );
   }
 }
